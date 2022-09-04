@@ -1,0 +1,19 @@
+{
+  "name": "@whiskeyhub-document-service/services",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {},
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.154.0",
+    "@aws-sdk/s3-request-presigner": "^3.163.0",
+    "@middy/core": "^3.2.0",
+    "@middy/http-json-body-parser": "^3.3.0",
+    "@serverless-stack/node": "^1.8.2",
+    "aws-lambda": "^1.0.7",
+    "winston": "^3.8.1"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.102",
+    "json-schema-to-ts": "^2.5.5"
+  }
+}
