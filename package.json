@@ -12,8 +12,8 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "@serverless-stack/cli": "^1.8.0",
-    "@serverless-stack/resources": "^1.8.0",
+    "@serverless-stack/cli": "1.10.6",
+    "@serverless-stack/resources": "1.10.6",
     "@tsconfig/node16": "^1.0.3",
     "@typescript-eslint/eslint-plugin": "^5.33.1",
     "@typescript-eslint/parser": "^5.33.1",
