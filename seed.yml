@@ -1,5 +1,5 @@
 before_compile:
-  - n lts
-  - corepack enable
+  - n 16
+  - npm install -g pnpm
 compile:
   - pnpm install
