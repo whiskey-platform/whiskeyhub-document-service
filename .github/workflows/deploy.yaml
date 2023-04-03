@@ -27,7 +27,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::662292074719:role/whiskey-app-role
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           role-session-name: whiskeyhub-documents
       - run: pnpm sst deploy --stage prod --outputs-file outputs.json
         id: sst-deploy
