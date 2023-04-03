@@ -9,14 +9,14 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.109",
     "@types/node": "^18.11.18",
-    "sst": "rc"
+    "sst": "2.3.6"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.257.0",
     "@aws-sdk/s3-request-presigner": "^3.257.0",
     "@middy/core": "^4.2.1",
     "@middy/http-json-body-parser": "^4.2.1",
-    "sst": "rc",
+    "sst": "2.3.6",
     "winston": "^3.8.2"
   }
 }
