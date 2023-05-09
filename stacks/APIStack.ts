@@ -10,7 +10,4 @@ export function API({ stack }: StackContext) {
     },
   });
   api.bind([bucket]);
-  stack.addOutputs({
-    ApiEndpoint: api.url,
-  });
 }

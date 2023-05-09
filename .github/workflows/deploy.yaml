@@ -30,6 +30,6 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           role-session-name: whiskeyhub-documents
       - run: pnpm sst deploy --stage prod --outputs-file outputs.json
-        id: sst-deploy
-      - run: cat .sst/outputs.json
-        name: Deployment Outputs
+      - uses: mattwyskiel/sst-outputs-to-ssm@main
+        with:
+          outputs_path: .sst/outputs.json
