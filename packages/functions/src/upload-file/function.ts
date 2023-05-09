@@ -28,7 +28,10 @@ const uploadFile: APIGatewayJSONBodyEventHandler<
 > = async event => {
   logger.info('Uploading new file', { body: event.body });
   const s3 = new S3Client({ region: process.env.AWS_REGION });
-  const putRequest = new PutObjectCommand({ Bucket: Bucket.DocumentBucket.bucketName, Key: event.body.key });
+  const putRequest = new PutObjectCommand({
+    Bucket: Bucket.DocumentBucket.bucketName,
+    Key: event.body.key,
+  });
   logger.info('Obtaining pre-signed URL for direct upload', { input: putRequest.input });
   const signedURL = await getSignedUrl(s3, putRequest);
   logger.info('Retrieved pre-signed URL', { url: signedURL });
