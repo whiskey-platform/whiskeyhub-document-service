@@ -1,6 +1,7 @@
 import { SSTConfig } from 'sst';
 import { API } from './stacks/APIStack';
 import { Storage } from './stacks/StorageStack';
+import { TopicStack } from './stacks/TopicStack';
 
 export default {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -15,6 +16,6 @@ export default {
       runtime: 'nodejs16.x',
       architecture: 'arm_64',
     });
-    app.stack(Storage).stack(API);
+    app.stack(Storage).stack(API).stack(TopicStack);
   },
 } satisfies SSTConfig;
