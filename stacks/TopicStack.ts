@@ -9,6 +9,7 @@ export const TopicStack = ({ stack }: StackContext) => {
     },
   });
   ingestTopic.bind([bucket]);
+  ingestTopic.attachPermissions(['s3']);
 
   return { ingestTopic };
 };
