@@ -7,12 +7,15 @@
     "typecheck": "tsc -noEmit"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.194",
     "@types/node": "^18.11.18",
     "sst": "2.3.6",
     "vitest": "^0.28.2"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.257.0",
+    "@aws-sdk/client-sns": "^3.332.0",
+    "lodash": "^4.17.21",
     "sst": "2.3.6",
     "winston": "^3.8.2"
   }
