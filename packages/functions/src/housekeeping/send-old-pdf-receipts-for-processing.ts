@@ -36,7 +36,7 @@ export const handler: Handler = async event => {
     const fileExt = extracted![3];
 
     return {
-      id: file.Key!,
+      id: Math.random().toString(36).substring(2, 13),
       payload: {
         store,
         timestamp,
