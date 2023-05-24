@@ -1,10 +1,10 @@
-import { IS3Service, S3Service, logger } from '@whiskeyhub-document-service/core';
+import { IS3Service, S3Service, logger, wrapped } from '@whiskeyhub-document-service/core';
 import { Handler } from 'aws-lambda';
 import { Bucket } from 'sst/node/bucket';
 
 const s3: IS3Service = new S3Service();
 
-export const handler: Handler = async event => {
+const deleteOldPDFReceipts: Handler = async event => {
   logger.info('Retrieving all receipt files');
   const receiptFiles = await s3.retrieveObjects(
     Bucket.DocumentBucket.bucketName,
@@ -23,3 +23,5 @@ export const handler: Handler = async event => {
   );
   logger.info('deleted old receipt files');
 };
+
+export const handler = wrapped(deleteOldPDFReceipts);

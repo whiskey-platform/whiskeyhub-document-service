@@ -1,6 +1,7 @@
 import { Stack, StackContext, Topic } from 'sst/constructs';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
+import { LayerVersion } from 'aws-cdk-lib/aws-lambda';
 
 export const ExternalResources = ({ stack }: StackContext) => {
   const receiptsIngestTopic = new Topic(stack, 'ReceiptsIngestTopic', {
@@ -13,8 +14,15 @@ export const ExternalResources = ({ stack }: StackContext) => {
     },
   });
 
+  const powertools = LayerVersion.fromLayerVersionArn(
+    stack,
+    'PowertoolsLayer',
+    `arn:aws:lambda:${stack.region}:094274105915:layer:AWSLambdaPowertoolsTypeScript:11`
+  );
+
   return {
     receiptsIngestTopic,
+    powertools,
   };
 };
 

@@ -1,11 +1,10 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import middy from '@middy/core';
 import jsonBodyParser from '@middy/http-json-body-parser';
 import { Bucket } from 'sst/node/bucket';
 import { APIGatewayJSONBodyEventHandler, json } from '../lib/lambda-utils';
-import { logger } from '../lib/logger';
-import requestMonitoring from '../lib/middleware/request-monitoring';
+import { wrapped, logger } from '@whiskeyhub-document-service/core';
+import responseMonitoring from '../lib/middleware/response-monitoring';
 
 const inputSchema = {
   type: 'object',
@@ -38,6 +37,4 @@ const uploadFile: APIGatewayJSONBodyEventHandler<
   return json({ signedURL });
 };
 
-export const handler = middy(uploadFile)
-  .use(jsonBodyParser())
-  .use(requestMonitoring<typeof inputSchema.properties.body>());
+export const handler = wrapped(uploadFile).use(jsonBodyParser()).use(responseMonitoring());

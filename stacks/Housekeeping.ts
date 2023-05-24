@@ -4,14 +4,16 @@ import { ExternalResources } from './ExternalResources';
 
 export const Housekeeping = ({ stack }: StackContext) => {
   const { bucket } = use(Storage);
-  const { receiptsIngestTopic } = use(ExternalResources);
+  const { receiptsIngestTopic, powertools } = use(ExternalResources);
 
   new Function(stack, 'SendOldPDFReceiptsForProcessing', {
     handler: 'packages/functions/src/housekeeping/send-old-pdf-receipts-for-processing.handler',
     bind: [bucket, receiptsIngestTopic],
+    layers: [powertools],
   });
   new Function(stack, 'DeleteOldPDFReceipts', {
     handler: 'packages/functions/src/housekeeping/delete-old-pdf-receipts.handler',
     bind: [bucket],
+    layers: [powertools],
   });
 };

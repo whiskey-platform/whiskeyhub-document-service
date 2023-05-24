@@ -8,6 +8,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { logger } from '../utils/logger';
 import { chunk } from 'lodash';
+import { tracer } from '../utils/tracer';
 
 export interface IS3Service {
   copyObject: (CopySource: string, Bucket: string, Key: string) => Promise<void>;
@@ -16,7 +17,11 @@ export interface IS3Service {
 }
 
 export class S3Service implements IS3Service {
-  private s3Client = new S3Client({ region: process.env.AWS_REGION });
+  private s3Client: S3Client;
+  constructor() {
+    this.s3Client = new S3Client({ region: process.env.AWS_REGION });
+    tracer.captureAWSv3Client(this.s3Client);
+  }
   public async copyObject(CopySource: string, Bucket: string, Key: string): Promise<void> {
     logger.info(`Copying ${CopySource} to ${Bucket}/${Key}`);
     const copyRequest = new CopyObjectCommand({

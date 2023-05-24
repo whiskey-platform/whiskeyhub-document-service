@@ -4,12 +4,13 @@ import {
   IS3Service,
   S3Service,
   logger,
+  wrapped,
 } from '@whiskeyhub-document-service/core';
 import { Bucket } from 'sst/node/bucket';
 
 const s3: IS3Service = new S3Service();
 
-export const handler: SNSHandler = async event => {
+const ingestTopicSubscriber: SNSHandler = async event => {
   for (const record of event.Records) {
     logger.info('Handling SNS event record', { record });
     const input: DocumentIngestMessage = JSON.parse(record.Sns.Message);
@@ -22,3 +23,5 @@ export const handler: SNSHandler = async event => {
     );
   }
 };
+
+export const handler = wrapped(ingestTopicSubscriber);
