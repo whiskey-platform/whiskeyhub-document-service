@@ -41,6 +41,7 @@ export const handler: Handler = async event => {
         store,
         timestamp,
         documentType: contentType(fileExt),
+        sourceDataPath: `${Bucket.DocumentBucket.bucketName}/${file.Key!}`,
       },
     };
   });
