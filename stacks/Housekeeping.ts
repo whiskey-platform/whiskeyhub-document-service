@@ -4,7 +4,7 @@ import { ExternalResources } from './ExternalResources';
 
 export const Housekeeping = ({ stack }: StackContext) => {
   const { bucket } = use(Storage);
-  const { receiptsIngestTopic, powertools } = use(ExternalResources);
+  const { receiptsIngestTopic, receiptsEventsTopic, powertools } = use(ExternalResources);
 
   new Function(stack, 'SendOldPDFReceiptsForProcessing', {
     handler: 'packages/functions/src/housekeeping/send-old-pdf-receipts-for-processing.handler',
@@ -16,4 +16,10 @@ export const Housekeeping = ({ stack }: StackContext) => {
     bind: [bucket],
     layers: [powertools],
   });
+  const receiptsEventHandler = new Function(stack, 'ReceiptsEventHandler', {
+    handler: 'packages/functions/src/housekeeping/receipts-event-handler.handler',
+    bind: [bucket],
+    layers: [powertools],
+  });
+  receiptsEventsTopic.addSubscribers(stack, { receiptsEventHandler });
 };

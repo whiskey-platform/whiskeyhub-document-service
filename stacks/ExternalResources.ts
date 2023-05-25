@@ -14,6 +14,16 @@ export const ExternalResources = ({ stack }: StackContext) => {
     },
   });
 
+  const receiptsEventsTopic = new Topic(stack, 'ReceiptsEventsTopic', {
+    cdk: {
+      topic: sns.Topic.fromTopicArn(
+        stack,
+        'ExistingReceiptsEventsTopic',
+        ssmArn(`/sst/whiskey-receipts-service/${stack.stage}/Topic/EventsTopic/topicArn`, stack)
+      ),
+    },
+  });
+
   const powertools = LayerVersion.fromLayerVersionArn(
     stack,
     'PowertoolsLayer',
@@ -22,6 +32,7 @@ export const ExternalResources = ({ stack }: StackContext) => {
 
   return {
     receiptsIngestTopic,
+    receiptsEventsTopic,
     powertools,
   };
 };
