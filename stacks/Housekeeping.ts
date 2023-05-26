@@ -6,6 +6,7 @@ export const Housekeeping = ({ stack }: StackContext) => {
   const { bucket } = use(Storage);
   const { receiptsIngestTopic, receiptsEventsTopic, powertools } = use(ExternalResources);
 
+  // Receipts
   new Function(stack, 'SendOldPDFReceiptsForProcessing', {
     handler: 'packages/functions/src/housekeeping/send-old-pdf-receipts-for-processing.handler',
     bind: [bucket, receiptsIngestTopic],
@@ -22,4 +23,11 @@ export const Housekeeping = ({ stack }: StackContext) => {
     layers: [powertools],
   });
   receiptsEventsTopic.addSubscribers(stack, { receiptsEventHandler });
+
+  // General
+  new Function(stack, 'DeleteEmptyFiles', {
+    handler: 'packages/functions/src/housekeeping/delete-empty-files.handler',
+    bind: [bucket],
+    layers: [powertools],
+  });
 };
