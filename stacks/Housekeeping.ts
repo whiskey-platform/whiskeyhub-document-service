@@ -21,6 +21,7 @@ export const Housekeeping = ({ stack }: StackContext) => {
     handler: 'packages/functions/src/housekeeping/receipts-event-handler.handler',
     bind: [bucket],
     layers: [powertools],
+    permissions: ['s3'],
   });
   receiptsEventsTopic.addSubscribers(stack, { receiptsEventHandler });
 
