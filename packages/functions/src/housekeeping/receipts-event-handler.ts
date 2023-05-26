@@ -14,6 +14,7 @@ interface ReceiptEvent {
     sourceBucket?: string;
     sourceKey?: string;
   };
+  replay?: boolean;
 }
 
 const s3: IS3Service = new S3Service();
@@ -31,15 +32,15 @@ const receiptsEventHandler: SNSHandler = async event => {
     if (payload.action === 'ADD') {
       copyObjects.push({
         source: `${payload.details.sourceBucket!}/${payload.details.sourceKey}`,
-        key: `Finances/Receipts/${year}/${dateString} - ${payload.details.store}.${extension(
-          payload.details.documentType
-        )}`,
+        key: `Finances/Receipts/${year}/${dateString} - ${payload.details.store} (${
+          payload.details.id
+        }).${extension(payload.details.documentType)}`,
       });
     } else if (payload.action === 'DELETE') {
       deleteKeys.push(
-        `Finances/Receipts/${year}/${dateString} - ${payload.details.store}.${extension(
-          payload.details.documentType
-        )}`
+        `Finances/Receipts/${year}/${dateString} - ${payload.details.store} (${
+          payload.details.id
+        }).${extension(payload.details.documentType)}`
       );
     } else {
       logger.error('Unhandled payload action', { action: payload.action });
