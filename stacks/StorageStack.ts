@@ -15,11 +15,11 @@ export function Storage({ stack }: StackContext) {
             noncurrentVersionTransitions: [
               {
                 storageClass: StorageClass.INFREQUENT_ACCESS,
-                transitionAfter: Duration.days(15),
+                transitionAfter: Duration.days(30),
               },
               {
                 storageClass: StorageClass.GLACIER_INSTANT_RETRIEVAL,
-                transitionAfter: Duration.days(30),
+                transitionAfter: Duration.days(45),
               },
             ],
           },
