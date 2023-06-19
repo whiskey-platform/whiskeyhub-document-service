@@ -253,7 +253,7 @@ export function API({ stack, app }: StackContext) {
     };
   }
 
-  const api = new ApiGatewayV1Api(stack, 'DocumentsAPI', {
+  new ApiGatewayV1Api(stack, 'DocumentsAPI', {
     cdk: {
       restApi,
     },

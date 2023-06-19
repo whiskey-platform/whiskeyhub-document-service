@@ -8,6 +8,8 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.109",
+    "@types/luxon": "^3.3.0",
+    "@types/mime-types": "^2.1.1",
     "@types/node": "^18.11.18",
     "sst": "2.3.6"
   },
@@ -17,6 +19,8 @@
     "@middy/core": "^4.2.1",
     "@middy/http-json-body-parser": "^4.2.1",
     "@whiskeyhub-document-service/core": "link:../core",
+    "luxon": "^3.3.0",
+    "mime-types": "^2.1.35",
     "sst": "2.3.6",
     "winston": "^3.8.2"
   }

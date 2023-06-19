@@ -1,9 +1,9 @@
 import { ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3';
-import middy from '@middy/core';
 import { APIGatewayProxyHandlerV2 } from 'aws-lambda';
 import { Bucket } from 'sst/node/bucket';
 import { json } from '../lib/lambda-utils';
-import requestMonitoring from '../lib/middleware/request-monitoring';
+import { wrapped } from '@whiskeyhub-document-service/core';
+import responseMonitoring from '../lib/middleware/response-monitoring';
 
 const listFiles: APIGatewayProxyHandlerV2 = async () => {
   const s3 = new S3Client({ region: process.env.AWS_REGION });
@@ -12,4 +12,4 @@ const listFiles: APIGatewayProxyHandlerV2 = async () => {
   return json({ items: itemsRes.Contents });
 };
 
-export const handler = middy(listFiles).use(requestMonitoring());
+export const handler = wrapped(listFiles).use(responseMonitoring());
