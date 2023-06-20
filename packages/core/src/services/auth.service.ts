@@ -30,6 +30,7 @@ export class AuthService {
       };
     }
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async getUserInfo(headers: AuthHeaders): Promise<{ id: number; [x: string]: any }> {
     logger.info('Retrieving user info from Auth Service');
     logger.debug('User info request headers', { headers });

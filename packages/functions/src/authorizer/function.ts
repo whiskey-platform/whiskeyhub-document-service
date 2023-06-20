@@ -1,17 +1,16 @@
-import { APIGatewayRequestAuthorizerHandler, APIGatewayTokenAuthorizerHandler } from 'aws-lambda';
-import { logger } from '../lib/logger';
-import { AuthService } from '@whiskeyhub-document-service/core';
+import { APIGatewayRequestAuthorizerHandler } from 'aws-lambda';
+import { AuthService, logger, wrapped } from '@whiskeyhub-document-service/core';
 
 const auth = AuthService.live();
 
-export const handler: APIGatewayRequestAuthorizerHandler = async event => {
+const authorizer: APIGatewayRequestAuthorizerHandler = async event => {
   logger.info('Validating Auth headers');
   logger.debug('Incoming headers', { headers: event.headers });
   try {
     const user = await auth.getUserInfo({
-      'Authorization': event.headers!.Authorization!,
-      'x-whiskey-client-id': event.headers?['x-whiskey-client-id'] ?? '',
-      'x-whiskey-client-secret': event.headers?['x-whiskey-client-secret'] ?? '',
+      Authorization: event.headers!.Authorization!,
+      'x-whiskey-client-id': event.headers!['x-whiskey-client-id']!,
+      'x-whiskey-client-secret': event.headers!['x-whiskey-client-secret']!,
     });
 
     return {
@@ -22,11 +21,11 @@ export const handler: APIGatewayRequestAuthorizerHandler = async event => {
           {
             Action: 'execute-api:Invoke',
             Effect: 'Allow',
-            Resource: event.methodArn
-          }
-        ]
-      }
-    }
+            Resource: event.methodArn,
+          },
+        ],
+      },
+    };
   } catch {
     throw {
       status: 401,
@@ -34,3 +33,5 @@ export const handler: APIGatewayRequestAuthorizerHandler = async event => {
     };
   }
 };
+
+export const handler = wrapped(authorizer);

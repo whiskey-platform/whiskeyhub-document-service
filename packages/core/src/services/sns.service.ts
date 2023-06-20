@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { PublishBatchCommand, SNSClient } from '@aws-sdk/client-sns';
 import { chunk } from 'lodash';
 import { logger } from '../utils/logger';
