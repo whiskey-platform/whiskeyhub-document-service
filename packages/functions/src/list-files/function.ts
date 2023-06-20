@@ -7,11 +7,11 @@ import responseMonitoring from '../lib/middleware/response-monitoring';
 const s3: IS3Service = new S3Service();
 
 const listFiles: APIGatewayProxyHandlerV2 = async event => {
-  const items = await s3.retrieveGroupedObjects(
+  const { objects, folders } = await s3.retrieveGroupedObjects(
     Bucket.DocumentBucket.bucketName,
     event.queryStringParameters ? event.queryStringParameters!['prefix'] : undefined
   );
-  return json({ items });
+  return json({ objects, folders });
 };
 
 export const handler = wrapped(listFiles).use(responseMonitoring());

@@ -1,4 +1,5 @@
 import {
+  CommonPrefix,
   CopyObjectCommand,
   DeleteObjectsCommand,
   HeadObjectCommand,
@@ -19,7 +20,7 @@ export interface IS3Service {
   retrieveGroupedObjects: (
     Bucket: string,
     Prefix?: string | undefined
-  ) => Promise<ListObjectsV2CommandOutput>;
+  ) => Promise<{ objects: _Object[]; folders: string[] }>;
 }
 
 export class S3Service implements IS3Service {
@@ -57,15 +58,26 @@ export class S3Service implements IS3Service {
   public async retrieveGroupedObjects(
     Bucket: string,
     Prefix?: string | undefined
-  ): Promise<ListObjectsV2CommandOutput> {
+  ): Promise<{ objects: _Object[]; folders: string[] }> {
+    let ContinuationToken: string | undefined = undefined;
+    const objects: _Object[] = [];
+    const folders: string[] = [];
     const baseRequest: ListObjectsV2CommandInput = {
       Bucket,
       Prefix,
       Delimiter: '/',
     };
-    const getRequest = new ListObjectsV2Command(baseRequest);
-    const response = await this.s3Client.send(getRequest);
-    return response;
+    do {
+      if (ContinuationToken !== undefined) baseRequest.ContinuationToken = ContinuationToken;
+      const getRequest = new ListObjectsV2Command(baseRequest);
+      const response = await this.s3Client.send(getRequest);
+      objects.push(...(response.Contents ?? []));
+      folders.push(
+        ...(response.CommonPrefixes ? response.CommonPrefixes!.map(v => v.Prefix ?? '') : [])
+      );
+      ContinuationToken = response.NextContinuationToken;
+    } while (ContinuationToken !== undefined);
+    return { objects, folders };
   }
 
   public async deleteObjects(keys: string[], Bucket: string) {
