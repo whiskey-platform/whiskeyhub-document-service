@@ -20,9 +20,11 @@ import {
   ServicePrincipal,
 } from 'aws-cdk-lib/aws-iam';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
+import { ExternalResources } from './ExternalResources';
 
 export function API({ stack, app }: StackContext) {
   const { bucket } = use(Storage);
+  const { powertools } = use(ExternalResources);
 
   const apiGatewayRole = new Role(stack, 'api-gateway-role', {
     assumedBy: new ServicePrincipal('apigateway.amazonaws.com'),
@@ -45,6 +47,7 @@ export function API({ stack, app }: StackContext) {
   const authorizerFunction = new Function(stack, 'AuthorizerFunction', {
     handler: 'packages/functions/src/authorizer/function.handler',
     bind: [AUTH_BASE_URL],
+    layers: [powertools],
   });
   const authorizer = new RequestAuthorizer(stack, 'Authorizer', {
     handler: authorizerFunction,
