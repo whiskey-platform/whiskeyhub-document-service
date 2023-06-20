@@ -121,8 +121,6 @@ export function API({ stack, app }: StackContext) {
       ],
     },
   });
-
-  //GetObject (Metadata) method options
   const getObjectMetadataMethodOptions = {
     authorizationType: AuthorizationType.CUSTOM,
     authorizer,
@@ -140,6 +138,89 @@ export function API({ stack, app }: StackContext) {
     ],
   };
   itemResource.addMethod('HEAD', getObjectMetadataIntegration, getObjectMetadataMethodOptions);
+
+  // GET /{object} -> Get Object data
+  const getObjectIntegration = new AwsIntegration({
+    service: 's3',
+    region: 'us-east-1',
+    path: `${bucket.bucketName}/{object}`,
+    integrationHttpMethod: 'GET',
+    options: {
+      credentialsRole: apiGatewayRole,
+      passthroughBehavior: PassthroughBehavior.WHEN_NO_TEMPLATES,
+      requestParameters: {
+        'integration.request.path.object': 'method.request.path.item',
+        'integration.request.header.Accept': 'method.request.header.Accept',
+      },
+      integrationResponses: [
+        {
+          statusCode: '200',
+          responseParameters: {
+            'method.response.header.Content-Type': 'integration.response.header.Content-Type',
+          },
+        },
+      ],
+    },
+  });
+  const getObjectMethodOptions = {
+    authorizationType: AuthorizationType.CUSTOM,
+    authorizer,
+    requestParameters: {
+      'method.request.path.item': true,
+      'method.request.header.Accept': true,
+    },
+    methodResponses: [
+      {
+        statusCode: '200',
+        responseParameters: {
+          'method.response.header.Content-Type': true,
+        },
+      },
+    ],
+  };
+  itemResource.addMethod('GET', getObjectIntegration, getObjectMethodOptions);
+
+  // PUT /{object} -> upload object to bucket
+  const putObjectIntegration = new AwsIntegration({
+    service: 's3',
+    region: 'us-east-1',
+    path: `${bucket.bucketName}/{object}`,
+    integrationHttpMethod: 'PUT',
+    options: {
+      credentialsRole: apiGatewayRole,
+      passthroughBehavior: PassthroughBehavior.WHEN_NO_TEMPLATES,
+      requestParameters: {
+        'integration.request.path.object': 'method.request.path.item',
+        'integration.request.header.Accept': 'method.request.header.Accept',
+      },
+      integrationResponses: [
+        {
+          statusCode: '200',
+          responseParameters: {
+            'method.response.header.Content-Type': 'integration.response.header.Content-Type',
+          },
+        },
+      ],
+    },
+  });
+  const putObjectMethodOptions = {
+    authorizationType: AuthorizationType.CUSTOM,
+    authorizer,
+    requestParameters: {
+      'method.request.path.item': true,
+      'method.request.header.Accept': true,
+      'method.request.header.Content-Type': true,
+    },
+    methodResponses: [
+      {
+        statusCode: '200',
+        responseParameters: {
+          'method.response.header.Content-Type': true,
+        },
+      },
+    ],
+  };
+  itemResource.addMethod('PUT', putObjectIntegration, putObjectMethodOptions);
 
   if (!app.local && app.stage !== 'local') {
     const domainName = DomainName.fromDomainNameAttributes(stack, 'ApiDomain', {
