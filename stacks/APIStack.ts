@@ -6,7 +6,7 @@ import {
   DomainName,
   EndpointType,
   IdentitySource,
-  MethodOptions,
+  LambdaIntegration,
   PassthroughBehavior,
   RequestAuthorizer,
   RestApi,
@@ -67,38 +67,13 @@ export function API({ stack, app }: StackContext) {
   });
   const itemResource = restApi.root.addResource('{item}');
 
-  // GET / -> list all objects in bucket
-  const listObjectsIntegration = new AwsIntegration({
-    service: 's3',
-    region: 'us-east-1',
-    path: bucket.bucketName,
-    integrationHttpMethod: 'GET',
-    options: {
-      credentialsRole: apiGatewayRole,
-      passthroughBehavior: PassthroughBehavior.WHEN_NO_TEMPLATES,
-      integrationResponses: [
-        {
-          statusCode: '200',
-          responseParameters: {
-            'method.response.header.Content-Type': 'integration.response.header.Content-Type',
-          },
-        },
-      ],
-    },
+  const listFilesFunction = new Function(stack, 'ListFilesFunction', {
+    handler: 'packages/functions/src/list-files/function.handler',
+    bind: [bucket],
+    layers: [powertools],
   });
-  const listObjectsMethodOptions: MethodOptions = {
-    authorizationType: AuthorizationType.CUSTOM,
-    authorizer,
-    methodResponses: [
-      {
-        statusCode: '200',
-        responseParameters: {
-          'method.response.header.Content-Type': true,
-        },
-      },
-    ],
-  };
-  restApi.root.addMethod('GET', listObjectsIntegration, listObjectsMethodOptions);
+
+  restApi.root.addMethod('GET', new LambdaIntegration(listFilesFunction));
 
   // HEAD /{object} -> get object metadata
   const getObjectMetadataIntegration = new AwsIntegration({
