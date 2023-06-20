@@ -6,8 +6,11 @@ import responseMonitoring from '../lib/middleware/response-monitoring';
 
 const s3: IS3Service = new S3Service();
 
-const listFiles: APIGatewayProxyHandlerV2 = async () => {
-  const items = await s3.retrieveObjects(Bucket.DocumentBucket.bucketName);
+const listFiles: APIGatewayProxyHandlerV2 = async event => {
+  const items = await s3.retrieveObjects(
+    Bucket.DocumentBucket.bucketName,
+    event.queryStringParameters ? event.queryStringParameters!['prefix'] : undefined
+  );
   return json({ items });
 };
 
