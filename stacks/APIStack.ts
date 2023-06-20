@@ -96,7 +96,50 @@ export function API({ stack, app }: StackContext) {
       },
     ],
   };
-  itemResource.addMethod('GET', listObjectsIntegration, listObjectsMethodOptions);
+  restApi.root.addMethod('GET', listObjectsIntegration, listObjectsMethodOptions);
+
+  // HEAD /{object} -> get object metadata
+  const getObjectMetadataIntegration = new AwsIntegration({
+    service: 's3',
+    region: 'us-east-1',
+    path: `${bucket.bucketName}/{object}`,
+    integrationHttpMethod: 'HEAD',
+    options: {
+      credentialsRole: apiGatewayRole,
+      passthroughBehavior: PassthroughBehavior.WHEN_NO_TEMPLATES,
+      requestParameters: {
+        'integration.request.path.object': 'method.request.path.item',
+        'integration.request.header.Accept': 'method.request.header.Accept',
+      },
+      integrationResponses: [
+        {
+          statusCode: '200',
+          responseParameters: {
+            'method.response.header.Content-Type': 'integration.response.header.Content-Type',
+          },
+        },
+      ],
+    },
+  });
+
+  //GetObject (Metadata) method options
+  const getObjectMetadataMethodOptions = {
+    authorizationType: AuthorizationType.CUSTOM,
+    authorizer,
+    requestParameters: {
+      'method.request.path.item': true,
+      'method.request.header.Accept': true,
+    },
+    methodResponses: [
+      {
+        statusCode: '200',
+        responseParameters: {
+          'method.response.header.Content-Type': true,
+        },
+      },
+    ],
+  };
+  itemResource.addMethod('HEAD', getObjectMetadataIntegration, getObjectMetadataMethodOptions);
 
   if (!app.local && app.stage !== 'local') {
     const domainName = DomainName.fromDomainNameAttributes(stack, 'ApiDomain', {
