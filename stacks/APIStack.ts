@@ -69,7 +69,7 @@ export function API({ stack, app }: StackContext) {
   const listObjectsIntegration = new AwsIntegration({
     service: 's3',
     region: 'us-east-1',
-    path: '/',
+    path: '/{bucket}',
     integrationHttpMethod: 'GET',
     options: {
       credentialsRole: apiGatewayRole,
