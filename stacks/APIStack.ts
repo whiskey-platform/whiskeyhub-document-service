@@ -1,5 +1,6 @@
 import { ApiGatewayV1Api, Config, Function, StackContext, use } from 'sst/constructs';
 import {
+  AuthorizationType,
   AwsIntegration,
   BasePathMapping,
   DomainName,
@@ -8,10 +9,17 @@ import {
   MethodOptions,
   PassthroughBehavior,
   RequestAuthorizer,
+  Resource,
   RestApi,
 } from 'aws-cdk-lib/aws-apigateway';
 import { Storage } from './StorageStack';
-import { PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import {
+  Effect,
+  PolicyDocument,
+  PolicyStatement,
+  Role,
+  ServicePrincipal,
+} from 'aws-cdk-lib/aws-iam';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 
 export function API({ stack, app }: StackContext) {
@@ -19,16 +27,18 @@ export function API({ stack, app }: StackContext) {
 
   const apiGatewayRole = new Role(stack, 'api-gateway-role', {
     assumedBy: new ServicePrincipal('apigateway.amazonaws.com'),
+    inlinePolicies: {
+      AllowFullS3AccessToBucket: new PolicyDocument({
+        statements: [
+          new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: ['s3:*'],
+            resources: [bucket.bucketArn],
+          }),
+        ],
+      }),
+    },
   });
-
-  const addActionToPolicy = (action: string) => {
-    apiGatewayRole.addToPolicy(
-      new PolicyStatement({
-        resources: [bucket.bucketArn],
-        actions: [`${action}`],
-      })
-    );
-  };
 
   const AUTH_BASE_URL = new Config.Parameter(stack, 'AUTH_BASE_URL', {
     value: StringParameter.valueFromLookup(stack, `/sst/auth-service/${app.stage}/Api/api/url`),
@@ -53,21 +63,18 @@ export function API({ stack, app }: StackContext) {
     },
     binaryMediaTypes: ['*/*'],
   });
+  const itemResource = restApi.root.addResource('{item}');
 
-  //Create {item} API resource to read/write an object in a given bucket
-  const bucketItemResource = restApi.root.addResource('{item}');
-
-  //ListBucket (Objects) method
-  addActionToPolicy('s3:ListBucket');
-  const listBucketIntegration = new AwsIntegration({
+  // GET / -> list all objects in bucket
+  const listObjectsIntegration = new AwsIntegration({
     service: 's3',
     region: 'us-east-1',
-    path: '{bucket}',
+    path: '/',
     integrationHttpMethod: 'GET',
     options: {
       credentialsRole: apiGatewayRole,
       passthroughBehavior: PassthroughBehavior.WHEN_NO_TEMPLATES,
-      requestParameters: { 'integration.request.path.bucket': bucket.bucketName },
+      requestParameters: { 'integration.request.path.bucket': `'${bucket.bucketName}'` },
       integrationResponses: [
         {
           statusCode: '200',
@@ -78,8 +85,8 @@ export function API({ stack, app }: StackContext) {
       ],
     },
   });
-  //ListBucket (Objects) method options
-  const listBucketMethodOptions: MethodOptions = {
+  const listObjectsMethodOptions: MethodOptions = {
+    authorizationType: AuthorizationType.CUSTOM,
     authorizer,
     methodResponses: [
       {
@@ -90,144 +97,7 @@ export function API({ stack, app }: StackContext) {
       },
     ],
   };
-  restApi.root.addMethod('GET', listBucketIntegration, listBucketMethodOptions);
-
-  //GetObject (Metadata) method
-  addActionToPolicy('s3:GetObject');
-  const getObjectMetadataIntegration = new AwsIntegration({
-    service: 's3',
-    region: 'us-east-1',
-    path: '{bucket}/{object}',
-    integrationHttpMethod: 'HEAD',
-    options: {
-      credentialsRole: apiGatewayRole,
-      passthroughBehavior: PassthroughBehavior.WHEN_NO_TEMPLATES,
-      requestParameters: {
-        'integration.request.path.bucket': bucket.bucketName,
-        'integration.request.path.object': 'method.request.path.item',
-        'integration.request.header.Accept': 'method.request.header.Accept',
-      },
-      integrationResponses: [
-        {
-          statusCode: '200',
-          responseParameters: {
-            'method.response.header.Content-Type': 'integration.response.header.Content-Type',
-          },
-        },
-      ],
-    },
-  });
-
-  //GetObject (Metadata) method options
-  const getObjectMetadataMethodOptions: MethodOptions = {
-    authorizer,
-    requestParameters: {
-      'method.request.path.item': true,
-      'method.request.header.Accept': true,
-    },
-    methodResponses: [
-      {
-        statusCode: '200',
-        responseParameters: {
-          'method.response.header.Content-Type': true,
-        },
-      },
-    ],
-  };
-  bucketItemResource.addMethod(
-    'HEAD',
-    getObjectMetadataIntegration,
-    getObjectMetadataMethodOptions
-  );
-
-  //GetObject method
-  addActionToPolicy('s3:GetObject');
-  const getObjectIntegration = new AwsIntegration({
-    service: 's3',
-    region: 'us-east-1',
-    path: '{bucket}/{object}',
-    integrationHttpMethod: 'GET',
-    options: {
-      credentialsRole: apiGatewayRole,
-      passthroughBehavior: PassthroughBehavior.WHEN_NO_TEMPLATES,
-      requestParameters: {
-        'integration.request.path.bucket': bucket.bucketName,
-        'integration.request.path.object': 'method.request.path.item',
-        'integration.request.header.Accept': 'method.request.header.Accept',
-      },
-      integrationResponses: [
-        {
-          statusCode: '200',
-          responseParameters: {
-            'method.response.header.Content-Type': 'integration.response.header.Content-Type',
-          },
-        },
-      ],
-    },
-  });
-
-  //GetObject method options
-  const getObjectMethodOptions: MethodOptions = {
-    authorizer,
-    requestParameters: {
-      'method.request.path.item': true,
-      'method.request.header.Accept': true,
-    },
-    methodResponses: [
-      {
-        statusCode: '200',
-        responseParameters: {
-          'method.response.header.Content-Type': true,
-        },
-      },
-    ],
-  };
-  bucketItemResource.addMethod('GET', getObjectIntegration, getObjectMethodOptions);
-
-  //PutObject method
-  addActionToPolicy('s3:PutObject');
-  const putObjectIntegration = new AwsIntegration({
-    service: 's3',
-    region: 'us-east-1',
-    path: '{bucket}/{object}',
-    integrationHttpMethod: 'PUT',
-    options: {
-      credentialsRole: apiGatewayRole,
-      passthroughBehavior: PassthroughBehavior.WHEN_NO_TEMPLATES,
-      requestParameters: {
-        'integration.request.path.bucket': bucket.bucketName,
-        'integration.request.path.object': 'method.request.path.item',
-        'integration.request.header.Accept': 'method.request.header.Accept',
-      },
-      integrationResponses: [
-        {
-          statusCode: '200',
-          responseParameters: {
-            'method.response.header.Content-Type': 'integration.response.header.Content-Type',
-          },
-        },
-      ],
-    },
-  });
-
-  //PutObject method options
-  const putObjectMethodOptions: MethodOptions = {
-    authorizer,
-    requestParameters: {
-      'method.request.path.item': true,
-      'method.request.header.Accept': true,
-      'method.request.header.Content-Type': true,
-    },
-    methodResponses: [
-      {
-        statusCode: '200',
-        responseParameters: {
-          'method.response.header.Content-Type': true,
-        },
-      },
-    ],
-  };
-  bucketItemResource.addMethod('PUT', putObjectIntegration, putObjectMethodOptions);
+  itemResource.addMethod('GET', listObjectsIntegration, listObjectsMethodOptions);
 
   if (!app.local && app.stage !== 'local') {
     const domainName = DomainName.fromDomainNameAttributes(stack, 'ApiDomain', {
