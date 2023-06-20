@@ -4,6 +4,7 @@ import {
   HeadObjectCommand,
   ListObjectsV2Command,
   ListObjectsV2CommandInput,
+  ListObjectsV2CommandOutput,
   S3Client,
   _Object,
 } from '@aws-sdk/client-s3';
@@ -15,6 +16,10 @@ export interface IS3Service {
   copyObject: (CopySource: string, Bucket: string, Key: string) => Promise<void>;
   retrieveObjects: (Bucket: string, Prefix?: string | undefined) => Promise<_Object[]>;
   deleteObjects: (keys: string[], Bucket: string) => Promise<void>;
+  retrieveGroupedObjects: (
+    Bucket: string,
+    Prefix?: string | undefined
+  ) => Promise<ListObjectsV2CommandOutput>;
 }
 
 export class S3Service implements IS3Service {
@@ -47,6 +52,20 @@ export class S3Service implements IS3Service {
       ContinuationToken = response.NextContinuationToken;
     } while (ContinuationToken !== undefined);
     return objects;
+  }
+
+  public async retrieveGroupedObjects(
+    Bucket: string,
+    Prefix?: string | undefined
+  ): Promise<ListObjectsV2CommandOutput> {
+    const baseRequest: ListObjectsV2CommandInput = {
+      Bucket,
+      Prefix,
+      Delimiter: '/',
+    };
+    const getRequest = new ListObjectsV2Command(baseRequest);
+    const response = await this.s3Client.send(getRequest);
+    return response;
   }
 
   public async deleteObjects(keys: string[], Bucket: string) {
