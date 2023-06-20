@@ -9,7 +9,6 @@ import {
   MethodOptions,
   PassthroughBehavior,
   RequestAuthorizer,
-  Resource,
   RestApi,
 } from 'aws-cdk-lib/aws-apigateway';
 import { Storage } from './StorageStack';
