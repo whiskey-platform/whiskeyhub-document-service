@@ -69,12 +69,11 @@ export function API({ stack, app }: StackContext) {
   const listObjectsIntegration = new AwsIntegration({
     service: 's3',
     region: 'us-east-1',
-    path: '/{bucket}',
+    path: bucket.bucketName,
     integrationHttpMethod: 'GET',
     options: {
       credentialsRole: apiGatewayRole,
       passthroughBehavior: PassthroughBehavior.WHEN_NO_TEMPLATES,
-      requestParameters: { 'integration.request.path.bucket': `'${bucket.bucketName}'` },
       integrationResponses: [
         {
           statusCode: '200',
