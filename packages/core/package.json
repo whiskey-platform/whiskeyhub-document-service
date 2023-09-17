@@ -10,7 +10,7 @@
     "@types/aws-lambda": "^8.10.109",
     "@types/lodash": "^4.14.194",
     "@types/node": "^18.11.18",
-    "sst": "2.16.1",
+    "sst": "2.25.2",
     "vitest": "^0.28.2"
   },
   "dependencies": {
@@ -21,6 +21,6 @@
     "@aws-sdk/client-sns": "^3.332.0",
     "@middy/core": "^4.2.1",
     "lodash": "^4.17.21",
-    "sst": "2.16.1"
+    "sst": "2.25.2"
   }
 }
