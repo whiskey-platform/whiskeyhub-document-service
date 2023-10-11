@@ -24,7 +24,9 @@ const sendOldPDFReceiptsForProcessing: Handler = async event => {
 
   logger.info('Filtering receipt files');
   const unaddedReceiptFiles = receiptFiles.filter(
-    val => !val.Key?.match(/[0-7][0-9A-HJKMNP-TV-Z]{25}/) // don't have ULID
+    val =>
+      !val.Key?.match(/[0-7][0-9A-HJKMNP-TV-Z]{25}/) && // don't have ULID
+      !val.Key?.endsWith('/') // not a folder
   );
 
   const events = unaddedReceiptFiles.map(file => {

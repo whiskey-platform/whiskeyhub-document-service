@@ -8,6 +8,7 @@ import {
   ListObjectsV2CommandOutput,
   S3Client,
   _Object,
+  paginateListObjectsV2,
 } from '@aws-sdk/client-s3';
 import { logger } from '../utils/logger';
 import { chunk } from 'lodash';
@@ -39,19 +40,15 @@ export class S3Service implements IS3Service {
     await this.s3Client.send(copyRequest);
   }
   public async retrieveObjects(Bucket: string, Prefix?: string | undefined): Promise<_Object[]> {
-    let ContinuationToken: string | undefined = undefined;
     const objects: _Object[] = [];
     const baseRequest: ListObjectsV2CommandInput = {
       Bucket,
       Prefix,
     };
-    do {
-      if (ContinuationToken !== undefined) baseRequest.ContinuationToken = ContinuationToken;
-      const getRequest = new ListObjectsV2Command(baseRequest);
-      const response = await this.s3Client.send(getRequest);
-      objects.push(...(response.Contents ?? []));
-      ContinuationToken = response.NextContinuationToken;
-    } while (ContinuationToken !== undefined);
+
+    for await (const page of paginateListObjectsV2({ client: this.s3Client }, baseRequest))
+      objects.push(...(page.Contents ?? []));
+
     return objects;
   }
 
@@ -59,7 +56,6 @@ export class S3Service implements IS3Service {
     Bucket: string,
     Prefix?: string | undefined
   ): Promise<{ objects: _Object[]; folders: string[] }> {
-    let ContinuationToken: string | undefined = undefined;
     const objects: _Object[] = [];
     const folders: string[] = [];
     const baseRequest: ListObjectsV2CommandInput = {
@@ -67,16 +63,10 @@ export class S3Service implements IS3Service {
       Prefix,
       Delimiter: '/',
     };
-    do {
-      if (ContinuationToken !== undefined) baseRequest.ContinuationToken = ContinuationToken;
-      const getRequest = new ListObjectsV2Command(baseRequest);
-      const response = await this.s3Client.send(getRequest);
-      objects.push(...(response.Contents ?? []));
-      folders.push(
-        ...(response.CommonPrefixes ? response.CommonPrefixes!.map(v => v.Prefix ?? '') : [])
-      );
-      ContinuationToken = response.NextContinuationToken;
-    } while (ContinuationToken !== undefined);
+    for await (const page of paginateListObjectsV2({ client: this.s3Client }, baseRequest)) {
+      objects.push(...(page.Contents ?? []));
+      folders.push(...(page.CommonPrefixes ? page.CommonPrefixes!.map(v => v.Prefix ?? '') : []));
+    }
     return { objects, folders };
   }
 
