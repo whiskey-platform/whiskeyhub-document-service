@@ -3,10 +3,12 @@ import { StorageClass } from 'aws-cdk-lib/aws-s3';
 import { StackContext, Bucket } from 'sst/constructs';
 
 export function Storage({ stack }: StackContext) {
+  const logBucket = new Bucket(stack, 'DocumentBucketLogs');
   const bucket = new Bucket(stack, 'DocumentBucket', {
     name: stack.stage === 'prod' ? 'mattwyskiel-documents' : undefined,
     cdk: {
       bucket: {
+        serverAccessLogsBucket: logBucket.cdk.bucket,
         versioned: true,
         lifecycleRules: [
           {
