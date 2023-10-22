@@ -14,14 +14,14 @@ const getEvents: APIGatewayProxyHandlerV2 = async event => {
   const afterDateTime = DateTime.fromMillis(parseInt(afterTime));
   const afterISO = afterDateTime.toISO()!;
   return json({
-    's3:ObjectCreated:Put': await getEventsFromDynamo('s3:ObjectCreated:Put', afterTime),
-    's3:ObjectCreated:CompleteMultipartUpload': await getEventsFromDynamo(
-      's3:ObjectCreated:CompleteMultipartUpload',
+    'ObjectCreated:Put': await getEventsFromDynamo('ObjectCreated:Put', afterTime),
+    'ObjectCreated:CompleteMultipartUpload': await getEventsFromDynamo(
+      'ObjectCreated:CompleteMultipartUpload',
       afterISO
     ),
-    's3:ObjectRemoved:Delete': await getEventsFromDynamo('s3:ObjectRemoved:Delete', afterTime),
-    's3:ObjectRemoved:DeleteMarkerCreated': await getEventsFromDynamo(
-      's3:ObjectRemoved:DeleteMarkerCreated',
+    'ObjectRemoved:Delete': await getEventsFromDynamo('ObjectRemoved:Delete', afterTime),
+    'ObjectRemoved:DeleteMarkerCreated': await getEventsFromDynamo(
+      'ObjectRemoved:DeleteMarkerCreated',
       afterISO
     ),
   });
