@@ -4,7 +4,6 @@ import { ExternalResources } from './ExternalResources';
 
 export const TopicStack = ({ stack }: StackContext) => {
   const { bucket } = use(Storage);
-  const { powertools } = use(ExternalResources);
   const ingestTopic = new Topic(stack, 'DocumentIngestTopic', {
     subscribers: {
       subscriber: 'packages/functions/src/ingest-topic-subscriber/function.handler',
@@ -13,7 +12,6 @@ export const TopicStack = ({ stack }: StackContext) => {
       function: {
         bind: [bucket],
         permissions: ['s3'],
-        layers: [powertools],
       },
     },
   });

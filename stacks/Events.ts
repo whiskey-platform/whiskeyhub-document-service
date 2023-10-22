@@ -2,11 +2,9 @@ import { Api, ApiDomainProps, StackContext, Table, use } from 'sst/constructs';
 import { DomainName } from '@aws-cdk/aws-apigatewayv2-alpha';
 import { Storage } from './StorageStack';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
-import { ExternalResources } from './ExternalResources';
 
 export const Events = ({ stack, app }: StackContext) => {
   const { bucket } = use(Storage);
-  const { powertools } = use(ExternalResources);
 
   const table = new Table(stack, 'EventsTable', {
     fields: {
@@ -58,7 +56,6 @@ export const Events = ({ stack, app }: StackContext) => {
     defaults: {
       function: {
         bind: [table],
-        layers: [powertools],
       },
     },
     customDomain,
