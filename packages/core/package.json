@@ -10,17 +10,20 @@
     "@types/aws-lambda": "^8.10.109",
     "@types/lodash": "^4.14.194",
     "@types/node": "^18.11.18",
-    "sst": "2.25.2",
+    "sst": "2.31.0",
     "vitest": "^0.28.2"
   },
   "dependencies": {
-    "axios": "^1.4.0",
     "@aws-lambda-powertools/logger": "^1.8.0",
     "@aws-lambda-powertools/tracer": "^1.8.0",
+    "@aws-sdk/client-dynamodb": "^3.433.0",
     "@aws-sdk/client-s3": "^3.257.0",
     "@aws-sdk/client-sns": "^3.332.0",
+    "@aws-sdk/lib-dynamodb": "^3.433.0",
+    "@aws-sdk/util-dynamodb": "^3.433.0",
     "@middy/core": "^4.2.1",
+    "axios": "^1.4.0",
     "lodash": "^4.17.21",
-    "sst": "2.25.2"
+    "sst": "2.31.0"
   }
 }
