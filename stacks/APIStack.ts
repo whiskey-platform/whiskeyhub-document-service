@@ -68,8 +68,13 @@ export function API({ stack, app }: StackContext) {
     handler: 'packages/functions/src/list-files/function.handler',
     bind: [bucket],
   });
+  restApi.root.addMethod('GET', new LambdaIntegration(listFilesFunction), { authorizer });
 
-  restApi.root.addMethod('GET', new LambdaIntegration(listFilesFunction));
+  const deleteFileFunction = new Function(stack, 'DeleteFileFunction', {
+    handler: 'packages/functions/src/delete-file/function.handler',
+    bind: [bucket],
+  });
+  restApi.root.addMethod('DELETE', new LambdaIntegration(deleteFileFunction), { authorizer });
 
   // HEAD /{object} -> get object metadata
   const getObjectMetadataIntegration = new AwsIntegration({
