@@ -42,6 +42,7 @@ export class S3Service implements IS3Service {
     const baseRequest: ListObjectsV2CommandInput = {
       Bucket,
       Prefix,
+      Delimiter: '/',
     };
 
     for await (const page of paginateListObjectsV2({ client: this.s3Client }, baseRequest))
