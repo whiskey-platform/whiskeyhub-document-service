@@ -14,6 +14,7 @@ const listFiles: APIGatewayProxyHandlerV2 = async event => {
       Bucket: Bucket.DocumentBucket.bucketName,
       Prefix: event.queryStringParameters?.prefix,
       ContinuationToken: event.queryStringParameters?.pageToken,
+      MaxKeys: parseInt(event.queryStringParameters?.maxItems ?? '1000'),
     });
     return {
       body: JSON.stringify(await rawS3.send(getRequest)),
