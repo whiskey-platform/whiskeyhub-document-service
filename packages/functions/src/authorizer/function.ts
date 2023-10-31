@@ -8,7 +8,7 @@ const authorizer: APIGatewayRequestAuthorizerHandler = async event => {
   logger.debug('Incoming headers', { headers: event.headers });
   try {
     const user = await auth.getUserInfo({
-      Authorization: event.headers!.Authorization!,
+      Authorization: event.headers!.authorization!,
       'x-whiskey-client-id': event.headers!['x-whiskey-client-id']!,
       'x-whiskey-client-secret': event.headers!['x-whiskey-client-secret']!,
     });
