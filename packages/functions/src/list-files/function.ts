@@ -25,6 +25,8 @@ const listFiles: APIGatewayProxyHandlerV2 = async event => {
         lastModified: item.LastModified?.toISOString(),
         size: item.Size,
       })),
+      folders: response.CommonPrefixes?.map(p => p.Prefix!) ?? [],
+      nextPage: response.NextContinuationToken,
     }),
   };
 };
