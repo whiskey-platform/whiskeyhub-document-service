@@ -3,7 +3,7 @@ import { logger, wrapped } from '@whiskeyhub-document-service/core';
 import { tracer } from '@whiskeyhub-document-service/core/src/utils/tracer';
 import { APIGatewayProxyHandlerV2 } from 'aws-lambda';
 import { Bucket } from 'sst/node/bucket';
-import responseMonitoring from '../src/lib/middleware/response-monitoring';
+import responseMonitoring from '../lib/middleware/response-monitoring';
 
 const rawS3 = new S3Client({});
 tracer.captureAWSv3Client(rawS3);
