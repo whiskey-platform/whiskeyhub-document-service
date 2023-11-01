@@ -29,10 +29,10 @@ export function API({ stack, app }: StackContext) {
     },
     routes: {
       'GET /': 'packages/functions/src/list-files/function.handler',
-      'GET /{key}/metadata': 'packages/functions/get-file-metadata/function.handler',
-      'GET /{key}': 'packages/functions/get-file-body/function.handler',
-      'PUT /{key}': 'packages/functions/upload-file/function.handler',
-      'DELETE /{key}': 'packages/functions/delete-file/function.handler',
+      'GET /{key}/metadata': 'packages/src/functions/get-file-metadata/function.handler',
+      'GET /{key}': 'packages/functions/src/get-file-body/function.handler',
+      'PUT /{key}': 'packages/functions/src/upload-file/function.handler',
+      'DELETE /{key}': 'packages/functions/src/delete-file/function.handler',
     },
     defaults: {
       authorizer: 'Authorizer',
