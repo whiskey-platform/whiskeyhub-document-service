@@ -4,6 +4,7 @@ import { wrapped } from '@whiskeyhub-document-service/core';
 import { tracer } from '@whiskeyhub-document-service/core/src/utils/tracer';
 import { APIGatewayProxyHandlerV2 } from 'aws-lambda';
 import { Bucket } from 'sst/node/bucket';
+import responseMonitoring from '../lib/middleware/response-monitoring';
 
 const rawS3 = new S3Client({});
 tracer.captureAWSv3Client(rawS3);
@@ -24,4 +25,4 @@ const uploadFile: APIGatewayProxyHandlerV2 = async event => {
   };
 };
 
-export const handler = wrapped(uploadFile);
+export const handler = wrapped(uploadFile).use(responseMonitoring());

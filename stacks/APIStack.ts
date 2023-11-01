@@ -29,6 +29,7 @@ export function API({ stack, app }: StackContext) {
     },
     routes: {
       'GET /': 'packages/functions/src/list-files/function.handler',
+      'POST /copy-file': 'packages/functions/src/copy-file/function.handler',
       'GET /{key}/metadata': 'packages/functions/src/get-file-metadata/function.handler',
       'GET /{key}': 'packages/functions/src/get-file-body/function.handler',
       'PUT /{key}': 'packages/functions/src/upload-file/function.handler',
