@@ -19,10 +19,10 @@ const getFileMetadata: APIGatewayProxyHandlerV2 = async event => {
 
   return {
     body: JSON.stringify({
-      Key: event.queryStringParameters!.key,
-      LastModified: response.LastModified,
-      ETag: response.ETag,
-      Size: response.ObjectSize,
+      key: event.queryStringParameters!.key,
+      lastModified: response.LastModified,
+      etag: response.ETag,
+      size: response.ObjectSize,
     }),
   };
 };
