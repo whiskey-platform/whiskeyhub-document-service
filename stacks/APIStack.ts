@@ -1,43 +1,9 @@
-import { ApiGatewayV1Api, Config, Function, StackContext, use } from 'sst/constructs';
-import {
-  AuthorizationType,
-  AwsIntegration,
-  BasePathMapping,
-  DomainName,
-  EndpointType,
-  IdentitySource,
-  LambdaIntegration,
-  PassthroughBehavior,
-  RequestAuthorizer,
-  RestApi,
-} from 'aws-cdk-lib/aws-apigateway';
+import { Api, Config, Function, StackContext, use } from 'sst/constructs';
 import { Storage } from './StorageStack';
-import {
-  Effect,
-  PolicyDocument,
-  PolicyStatement,
-  Role,
-  ServicePrincipal,
-} from 'aws-cdk-lib/aws-iam';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 
 export function API({ stack, app }: StackContext) {
   const { bucket } = use(Storage);
-
-  const apiGatewayRole = new Role(stack, 'api-gateway-role', {
-    assumedBy: new ServicePrincipal('apigateway.amazonaws.com'),
-    inlinePolicies: {
-      AllowFullS3AccessToBucket: new PolicyDocument({
-        statements: [
-          new PolicyStatement({
-            effect: Effect.ALLOW,
-            actions: ['s3:*'],
-            resources: [bucket.bucketArn],
-          }),
-        ],
-      }),
-    },
-  });
 
   const AUTH_BASE_URL = new Config.Parameter(stack, 'AUTH_BASE_URL', {
     value: StringParameter.valueFromLookup(stack, `/sst/auth-service/${app.stage}/Api/api/url`),
@@ -46,185 +12,33 @@ export function API({ stack, app }: StackContext) {
     handler: 'packages/functions/src/authorizer/function.handler',
     bind: [AUTH_BASE_URL],
   });
-  const authorizer = new RequestAuthorizer(stack, 'Authorizer', {
-    handler: authorizerFunction,
-    identitySources: [
-      IdentitySource.header('Authorization'),
-      IdentitySource.header('x-whiskey-client-id'),
-      IdentitySource.header('x-whiskey-client-secret'),
-    ],
-  });
 
-  //Create REST API
-  const restApi = new RestApi(stack, 'S3ObjectsRestApi', {
-    endpointConfiguration: {
-      types: [EndpointType.EDGE],
-    },
-    binaryMediaTypes: ['*/*'],
-  });
-  const itemResource = restApi.root.addResource('{item}');
+  const DB_CONNECTION = new Config.Secret(stack, 'DB_CONNECTION');
 
-  const listFilesFunction = new Function(stack, 'ListFilesFunction', {
-    handler: 'packages/functions/src/list-files/function.handler',
-    bind: [bucket],
-  });
-  restApi.root.addMethod('GET', new LambdaIntegration(listFilesFunction), { authorizer });
-
-  const deleteFileFunction = new Function(stack, 'DeleteFileFunction', {
-    handler: 'packages/functions/src/delete-file/function.handler',
-    bind: [bucket],
-  });
-  restApi.root.addMethod('DELETE', new LambdaIntegration(deleteFileFunction), { authorizer });
-
-  // HEAD /{object} -> get object metadata
-  const getObjectMetadataIntegration = new AwsIntegration({
-    service: 's3',
-    region: 'us-east-1',
-    path: `${bucket.bucketName}/{object}`,
-    integrationHttpMethod: 'HEAD',
-    options: {
-      credentialsRole: apiGatewayRole,
-      passthroughBehavior: PassthroughBehavior.WHEN_NO_TEMPLATES,
-      requestParameters: {
-        'integration.request.path.object': 'method.request.path.item',
-        'integration.request.header.Accept': 'method.request.header.Accept',
+  new Api(stack, 'DocumentsAPI', {
+    authorizers: {
+      Authorizer: {
+        type: 'lambda',
+        identitySource: [
+          '$request.header.Authorization',
+          '$request.header.x-whiskey-client-id',
+          '$request.header.x-whiskey-client-secret',
+        ],
+        function: authorizerFunction,
       },
-      integrationResponses: [
-        {
-          statusCode: '200',
-          responseParameters: {
-            'method.response.header.Content-Type': 'integration.response.header.Content-Type',
-          },
-        },
-      ],
     },
-  });
-  const getObjectMetadataMethodOptions = {
-    authorizationType: AuthorizationType.CUSTOM,
-    authorizer,
-    requestParameters: {
-      'method.request.path.item': true,
-      'method.request.header.Accept': true,
+    routes: {
+      'GET /': 'packages/functions/src/list-files/function.handler',
+      'GET /{key}/metadata': 'packages/functions/get-file-metadata/function.handler',
+      'GET /{key}': 'packages/functions/get-file-body/function.handler',
+      'PUT /{key}': 'packages/functions/upload-file/function.handler',
+      'DELETE /{key}': 'packages/functions/delete-file/function.handler',
     },
-    methodResponses: [
-      {
-        statusCode: '200',
-        responseParameters: {
-          'method.response.header.Content-Type': true,
-        },
+    defaults: {
+      authorizer: 'Authorizer',
+      function: {
+        bind: [DB_CONNECTION, bucket],
       },
-    ],
-  };
-  itemResource.addMethod('HEAD', getObjectMetadataIntegration, getObjectMetadataMethodOptions);
-
-  // GET /{object} -> Get Object data
-  const getObjectIntegration = new AwsIntegration({
-    service: 's3',
-    region: 'us-east-1',
-    path: `${bucket.bucketName}/{object}`,
-    integrationHttpMethod: 'GET',
-    options: {
-      credentialsRole: apiGatewayRole,
-      passthroughBehavior: PassthroughBehavior.WHEN_NO_TEMPLATES,
-      requestParameters: {
-        'integration.request.path.object': 'method.request.path.item',
-        'integration.request.header.Accept': 'method.request.header.Accept',
-      },
-      integrationResponses: [
-        {
-          statusCode: '200',
-          responseParameters: {
-            'method.response.header.Content-Type': 'integration.response.header.Content-Type',
-          },
-        },
-      ],
-    },
-  });
-  const getObjectMethodOptions = {
-    authorizationType: AuthorizationType.CUSTOM,
-    authorizer,
-    requestParameters: {
-      'method.request.path.item': true,
-      'method.request.header.Accept': true,
-    },
-    methodResponses: [
-      {
-        statusCode: '200',
-        responseParameters: {
-          'method.response.header.Content-Type': true,
-        },
-      },
-    ],
-  };
-  itemResource.addMethod('GET', getObjectIntegration, getObjectMethodOptions);
-
-  // PUT /{object} -> upload object to bucket
-  const putObjectIntegration = new AwsIntegration({
-    service: 's3',
-    region: 'us-east-1',
-    path: `${bucket.bucketName}/{object}`,
-    integrationHttpMethod: 'PUT',
-    options: {
-      credentialsRole: apiGatewayRole,
-      passthroughBehavior: PassthroughBehavior.WHEN_NO_TEMPLATES,
-      requestParameters: {
-        'integration.request.path.object': 'method.request.path.item',
-        'integration.request.header.Accept': 'method.request.header.Accept',
-      },
-      integrationResponses: [
-        {
-          statusCode: '200',
-          responseParameters: {
-            'method.response.header.Content-Type': 'integration.response.header.Content-Type',
-          },
-        },
-      ],
-    },
-  });
-  const putObjectMethodOptions = {
-    authorizationType: AuthorizationType.CUSTOM,
-    authorizer,
-    requestParameters: {
-      'method.request.path.item': true,
-      'method.request.header.Accept': true,
-      'method.request.header.Content-Type': true,
-    },
-    methodResponses: [
-      {
-        statusCode: '200',
-        responseParameters: {
-          'method.response.header.Content-Type': true,
-        },
-      },
-    ],
-  };
-  itemResource.addMethod('PUT', putObjectIntegration, putObjectMethodOptions);
-
-  if (!app.local && app.stage !== 'local') {
-    const domainName = DomainName.fromDomainNameAttributes(stack, 'ApiDomain', {
-      domainName: StringParameter.valueFromLookup(
-        stack,
-        `/sst-outputs/${app.stage}-api-infra-Infra/domainName`
-      ),
-      domainNameAliasTarget: StringParameter.valueFromLookup(
-        stack,
-        `/sst-outputs/${app.stage}-api-infra-Infra/regionalDomainName`
-      ),
-      domainNameAliasHostedZoneId: StringParameter.valueFromLookup(
-        stack,
-        `/sst-outputs/${app.stage}-api-infra-Infra/regionalHostedZoneId`
-      ),
-    });
-    new BasePathMapping(stack, 'BasePathMapping', {
-      domainName,
-      restApi,
-      basePath: 'documents',
-    });
-  }
-
-  new ApiGatewayV1Api(stack, 'DocumentsAPI', {
-    cdk: {
-      restApi,
     },
   });
 }
