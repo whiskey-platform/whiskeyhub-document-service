@@ -1,50 +1,39 @@
-import { GetObjectAttributesCommand, S3Client, S3ServiceException } from '@aws-sdk/client-s3';
 import { wrapped } from '@whiskeyhub-document-service/core';
-import { tracer } from '@whiskeyhub-document-service/core/src/utils/tracer';
 import { APIGatewayProxyHandlerV2 } from 'aws-lambda';
-import { Bucket } from 'sst/node/bucket';
 import responseMonitoring from '../lib/middleware/response-monitoring';
+import { MongoClient } from 'mongodb';
+import { Config } from 'sst/node/config';
 
-const rawS3 = new S3Client({});
-tracer.captureAWSv3Client(rawS3);
+const mongo = new MongoClient(Config.DB_CONNECTION);
 
 const getFileMetadata: APIGatewayProxyHandlerV2 = async event => {
   const key = event.pathParameters!.key!;
 
-  const getRequest = new GetObjectAttributesCommand({
-    Bucket: Bucket.DocumentBucket.bucketName,
-    Key: key,
-    ObjectAttributes: ['ETag', 'ObjectSize'],
-  });
   try {
-    const response = await rawS3.send(getRequest);
+    const db = mongo.db();
+    const collection = db.collection('files');
 
-    return {
-      body: JSON.stringify({
-        key: event.queryStringParameters!.key,
-        lastModified: response.LastModified,
-        etag: response.ETag,
-        size: response.ObjectSize,
-      }),
-    };
-  } catch (error) {
-    if (error as S3ServiceException) {
-      const err = error as S3ServiceException;
+    const document = await collection.findOne({ key });
+
+    if (!document) {
       return {
-        statusCode: err.$response?.statusCode,
+        statusCode: 404,
         body: JSON.stringify({
-          message: err.message,
-        }),
-      };
-      // (error as S3ServiceException).$response?.statusCode;
-    } else {
-      return {
-        statusCode: 500,
-        body: JSON.stringify({
-          message: (error as Error).message,
+          message: 'File not found',
         }),
       };
     }
+
+    return {
+      body: JSON.stringify(document),
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: (error as Error).message,
+      }),
+    };
   }
 };
 

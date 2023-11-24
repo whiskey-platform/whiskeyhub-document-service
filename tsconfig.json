@@ -1,4 +1,8 @@
 {
-  "extends": "@tsconfig/node16/tsconfig.json",
-  "include": ["stacks", "sst.config.ts"]
+  "extends": "@tsconfig/node20/tsconfig.json",
+  "include": ["stacks", "sst.config.ts"],
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "module": "ESNext"
+  }
 }

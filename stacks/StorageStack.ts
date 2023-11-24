@@ -1,6 +1,6 @@
 import { Duration } from 'aws-cdk-lib';
 import { StorageClass } from 'aws-cdk-lib/aws-s3';
-import { StackContext, Bucket } from 'sst/constructs';
+import { StackContext, Bucket, Config, Script } from 'sst/constructs';
 
 export function Storage({ stack }: StackContext) {
   const logBucket = new Bucket(stack, 'DocumentBucketLogs');
@@ -25,7 +25,20 @@ export function Storage({ stack }: StackContext) {
       },
     },
   });
+
+  const DB_CONNECTION = new Config.Secret(stack, 'DB_CONNECTION');
+
+  new Script(stack, 'SeedDatabase', {
+    // handler: 'packages/functions/src/housekeeping/seed-database.handler',
+    // bind: [bucket],
+    onCreate: {
+      handler: 'packages/functions/src/housekeeping/seed-database.handler',
+      bind: [bucket, DB_CONNECTION],
+    },
+  });
+
   return {
     bucket,
+    DB_CONNECTION,
   };
 }

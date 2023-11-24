@@ -3,7 +3,7 @@ import { Storage } from './StorageStack';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 
 export function API({ stack, app }: StackContext) {
-  const { bucket } = use(Storage);
+  const { bucket, DB_CONNECTION } = use(Storage);
 
   const AUTH_BASE_URL = new Config.Parameter(stack, 'AUTH_BASE_URL', {
     value: StringParameter.valueFromLookup(stack, `/sst/auth-service/${app.stage}/Api/api/url`),
@@ -12,8 +12,6 @@ export function API({ stack, app }: StackContext) {
     handler: 'packages/functions/src/authorizer/function.handler',
     bind: [AUTH_BASE_URL],
   });
-
-  const DB_CONNECTION = new Config.Secret(stack, 'DB_CONNECTION');
 
   new Api(stack, 'DocumentsAPI', {
     authorizers: {

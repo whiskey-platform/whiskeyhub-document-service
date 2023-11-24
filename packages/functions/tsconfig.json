@@ -1,7 +1,8 @@
 {
-  "extends": "@tsconfig/node16/tsconfig.json",
+  "extends": "@tsconfig/node20/tsconfig.json",
   "include": ["**/*.ts", "../../.sst/types"],
   "compilerOptions": {
-    "module": "esnext"
+    "moduleResolution": "bundler",
+    "module": "ESNext"
   }
 }

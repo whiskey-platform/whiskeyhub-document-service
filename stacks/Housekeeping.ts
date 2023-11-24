@@ -1,9 +1,9 @@
-import { Function, StackContext, use } from 'sst/constructs';
+import { Function, Script, StackContext, use } from 'sst/constructs';
 import { Storage } from './StorageStack';
 import { ExternalResources } from './ExternalResources';
 
 export const Housekeeping = ({ stack }: StackContext) => {
-  const { bucket } = use(Storage);
+  const { bucket, DB_CONNECTION } = use(Storage);
   const { receiptsIngestTopic, receiptsEventsTopic } = use(ExternalResources);
 
   // Receipts

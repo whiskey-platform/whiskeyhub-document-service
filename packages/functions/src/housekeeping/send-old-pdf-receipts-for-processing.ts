@@ -1,37 +1,40 @@
-import {
-  IS3Service,
-  ISNSService,
-  S3Service,
-  SNSService,
-  logger,
-  wrapped,
-} from '@whiskeyhub-document-service/core';
+import { ISNSService, SNSService, logger, wrapped } from '@whiskeyhub-document-service/core';
 import { Handler } from 'aws-lambda';
 import { DateTime } from 'luxon';
 import { contentType } from 'mime-types';
+import { MongoClient } from 'mongodb';
 import { Bucket } from 'sst/node/bucket';
+import { Config } from 'sst/node/config';
 import { Topic } from 'sst/node/topic';
 
-const s3: IS3Service = new S3Service();
 const sns: ISNSService = new SNSService();
+const mongo = new MongoClient(Config.DB_CONNECTION);
 
 const sendOldPDFReceiptsForProcessing: Handler = async event => {
+  const db = mongo.db();
+  const collection = db.collection('files');
+
   logger.info('Retrieving all receipt files');
-  const receiptFiles = await s3.retrieveObjects(
-    Bucket.DocumentBucket.bucketName,
-    'Finances/Receipts'
-  );
+  // const receiptFiles = await s3.retrieveObjects(
+  //   Bucket.DocumentBucket.bucketName,
+  //   'Finances/Receipts'
+  // );
+  const receiptFiles = await collection
+    .find({
+      key: { $in: /^Finances\/Receipts\// },
+    })
+    .toArray();
 
   logger.info('Filtering receipt files');
   const unaddedReceiptFiles = receiptFiles.filter(
     val =>
-      !val.Key?.match(/[0-7][0-9A-HJKMNP-TV-Z]{25}/) && // don't have ULID
-      !val.Key?.endsWith('/') // not a folder
+      !val.key?.match(/[0-7][0-9A-HJKMNP-TV-Z]{25}/) && // don't have ULID
+      !val.key?.endsWith('/') // not a folder
   );
 
   const events = unaddedReceiptFiles.map(file => {
-    logger.info(`Unhandled Receipt: ${file.Key}`);
-    const extracted = file.Key!.match(/(\d{4}-\d{2}-\d{2}) - (.*)\.(.*)/);
+    logger.info(`Unhandled Receipt: ${file.key}`);
+    const extracted = file.key!.match(/(\d{4}-\d{2}-\d{2}) - (.*)\.(.*)/);
     const dateString = extracted![1];
     const timestamp = DateTime.fromFormat(dateString, 'yyyy-MM-dd').toMillis();
 
@@ -44,7 +47,7 @@ const sendOldPDFReceiptsForProcessing: Handler = async event => {
         store,
         timestamp,
         documentType: contentType(fileExt),
-        sourceDataPath: `${Bucket.DocumentBucket.bucketName}/${file.Key!}`,
+        sourceDataPath: `${Bucket.DocumentBucket.bucketName}/${file.key!}`,
       },
     };
   });

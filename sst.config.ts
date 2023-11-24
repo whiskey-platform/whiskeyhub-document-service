@@ -16,7 +16,7 @@ export default {
   },
   stacks(app) {
     app.setDefaultFunctionProps({
-      runtime: 'nodejs18.x',
+      runtime: 'nodejs20.x',
       nodejs: {
         esbuild: {
           external: !app.local ? ['@aws-sdk/*'] : undefined,
