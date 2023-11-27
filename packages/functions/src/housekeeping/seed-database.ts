@@ -37,7 +37,7 @@ export const handler: Handler = async (event, context) => {
   });
 
   // save them to MongoDB
-  const db = mongo.db();
+  const db = mongo.db('whiskey-db');
   const collection = db.collection('files');
   await collection.insertMany(documents);
 };
