@@ -24,7 +24,7 @@ export const handler: Handler = async (event, context) => {
 
   // transform them into a Document object
   const documents: Document[] = objects.map(object => {
-    let mimetype = contentType(object.Key ?? '');
+    let mimetype = contentType(object.Key?.split('.').findLast(v => v) ?? '');
     if (mimetype === false) mimetype = 'application/octet-stream';
     return {
       key: object.Key ?? '',

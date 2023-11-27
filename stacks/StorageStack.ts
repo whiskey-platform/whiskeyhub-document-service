@@ -35,6 +35,10 @@ export function Storage({ stack }: StackContext) {
       handler: 'packages/functions/src/housekeeping/seed-database.handler',
       bind: [bucket, DB_CONNECTION],
     },
+    onDelete: {
+      handler: 'packages/functions/src/housekeeping/remove-files-in-database.handler',
+      bind: [bucket, DB_CONNECTION],
+    },
   });
 
   return {
