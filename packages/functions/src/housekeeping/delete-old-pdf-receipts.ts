@@ -1,8 +1,8 @@
-import { IS3Service, S3Service, logger, wrapped } from '@whiskeyhub-document-service/core';
+import { S3Service, logger, wrapped } from '@whiskeyhub-document-service/core';
 import { Handler } from 'aws-lambda';
 import { Bucket } from 'sst/node/bucket';
 
-const s3: IS3Service = new S3Service();
+const s3 = new S3Service();
 
 const deleteOldPDFReceipts: Handler = async event => {
   logger.info('Retrieving all receipt files');

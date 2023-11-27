@@ -1,20 +1,18 @@
 import { APIGatewayProxyHandlerV2 } from 'aws-lambda';
 import { Bucket } from 'sst/node/bucket';
-import { wrapped } from '@whiskeyhub-document-service/core';
+import { DatabaseService, wrapped } from '@whiskeyhub-document-service/core';
 import responseMonitoring from '../lib/middleware/response-monitoring';
 import { ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3';
 import { tracer } from '@whiskeyhub-document-service/core/src/utils/tracer';
-import { MongoClient } from 'mongodb';
 import { Config } from 'sst/node/config';
 
 const rawS3 = new S3Client({});
 tracer.captureAWSv3Client(rawS3);
 
-const mongo = new MongoClient(Config.DB_CONNECTION);
+const db = new DatabaseService(Config.DB_CONNECTION);
 
 const listFiles: APIGatewayProxyHandlerV2 = async event => {
-  const db = mongo.db('whiskey-db');
-  const collection = db.collection('files');
+  const collection = db.collection;
 
   const getRequest = new ListObjectsV2Command({
     Bucket: Bucket.DocumentBucket.bucketName,

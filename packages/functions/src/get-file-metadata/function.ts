@@ -1,21 +1,19 @@
-import { wrapped } from '@whiskeyhub-document-service/core';
+import { DatabaseService, wrapped, logger } from '@whiskeyhub-document-service/core';
 import { APIGatewayProxyHandlerV2 } from 'aws-lambda';
 import responseMonitoring from '../lib/middleware/response-monitoring';
-import { MongoClient } from 'mongodb';
 import { Config } from 'sst/node/config';
 
-const mongo = new MongoClient(Config.DB_CONNECTION);
+const db = new DatabaseService(Config.DB_CONNECTION);
 
 const getFileMetadata: APIGatewayProxyHandlerV2 = async event => {
   const key = event.pathParameters!.key!;
 
   try {
-    const db = mongo.db('whiskey-db');
-    const collection = db.collection('files');
-
-    const document = await collection.findOne({ key });
+    logger.info(`Fetching document with key: ${key}`);
+    const document = await db.getDocument(key);
 
     if (!document) {
+      logger.warn(`Document not found with key: ${key}`);
       return {
         statusCode: 404,
         body: JSON.stringify({
@@ -24,10 +22,12 @@ const getFileMetadata: APIGatewayProxyHandlerV2 = async event => {
       };
     }
 
+    logger.info(`Document found with key: ${key}`);
     return {
       body: JSON.stringify(document),
     };
   } catch (error) {
+    logger.error(`Error fetching document with key: ${key}`, error as Error);
     return {
       statusCode: 500,
       body: JSON.stringify({

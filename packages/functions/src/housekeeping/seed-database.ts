@@ -4,11 +4,11 @@ import { S3Client, paginateListObjectsV2 } from '@aws-sdk/client-s3';
 import { Handler } from 'aws-lambda';
 import { contentType } from 'mime-types';
 import { Bucket } from 'sst/node/bucket';
-import { MongoClient } from 'mongodb';
 import { Config } from 'sst/node/config';
-import { Document } from '@whiskeyhub-document-service/core';
+import { DatabaseService, Document } from '@whiskeyhub-document-service/core';
+
 const s3 = new S3Client({});
-const mongo = new MongoClient(Config.DB_CONNECTION);
+const db = new DatabaseService(Config.DB_CONNECTION);
 
 export const handler: Handler = async (event, context) => {
   // list all object versions from S3
@@ -38,7 +38,5 @@ export const handler: Handler = async (event, context) => {
   });
 
   // save them to MongoDB
-  const db = mongo.db('whiskey-db');
-  const collection = db.collection('files');
-  await collection.insertMany(documents);
+  await db.insertManyDocuments(documents);
 };

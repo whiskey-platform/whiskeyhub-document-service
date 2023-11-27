@@ -1,56 +1,40 @@
-import {
-  DynamoDBService,
-  IDynamoDBService,
-  logger,
-  wrapped,
-} from '@whiskeyhub-document-service/core';
+import { DatabaseService, DynamoDBService, wrapped } from '@whiskeyhub-document-service/core';
 import { S3Handler } from 'aws-lambda';
+import { DateTime } from 'luxon';
 import { contentType } from 'mime-types';
-import { MongoClient } from 'mongodb';
 import { Config } from 'sst/node/config';
 import { Table } from 'sst/node/table';
 
-const dynamo: IDynamoDBService = new DynamoDBService();
-const mongo = new MongoClient(Config.DB_CONNECTION);
+const dynamo = new DynamoDBService();
+const db = new DatabaseService(Config.DB_CONNECTION);
 
 const s3EventHandler: S3Handler = async event => {
-  const db = mongo.db('whiskey-db');
-  const collection = db.collection('files');
+  const collection = db.collection;
 
   for (const record of event.Records) {
     if (record.eventName.includes('ObjectRemoved')) {
-      await collection.deleteOne({ key: record.s3.object.key });
+      await db.deleteDocument(record.s3.object.key);
       continue;
     }
     if (record.eventName.includes('ObjectCreated')) {
       let mimetype = contentType(record.s3.object.key ?? '');
       if (mimetype === false) mimetype = 'application/octet-stream';
 
-      await collection.updateOne(
-        { key: record.s3.object.key },
-        {
-          $set: {
-            key: record.s3.object.key,
-            filename: record.s3.object.key?.split('/').findLast(v => v) ?? record.s3.object.key,
-            size: record.s3.object.size,
-            contentType: contentType(record.s3.object.key),
-            lastModified: record.eventTime,
-            parentKey: (record.s3.object.key ?? '').split('/').slice(0, -1).join('/') + '/' || '/',
-          },
-        },
-        { upsert: true }
-      );
+      await db.upsertDocument({
+        key: record.s3.object.key,
+        filename: record.s3.object.key?.split('/').findLast(v => v) ?? record.s3.object.key,
+        size: record.s3.object.size,
+        contentType: mimetype,
+        lastModified: DateTime.fromISO(record.eventTime).toJSDate(),
+        parentKey: (record.s3.object.key ?? '').split('/').slice(0, -1).join('/') + '/' || '/',
+      });
 
       const document = await collection.findOne({ key: record.s3.object.key });
       if (!document!.created) {
-        await collection.updateOne(
-          { key: record.s3.object.key },
-          {
-            $set: {
-              created: record.eventTime,
-            },
-          }
-        );
+        await db.updateDocument({
+          key: record.s3.object.key,
+          created: DateTime.fromISO(record.eventTime).toJSDate(),
+        });
       }
 
       continue;

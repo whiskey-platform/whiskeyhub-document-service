@@ -1,14 +1,13 @@
 import { SNSHandler } from 'aws-lambda';
 import {
   DocumentIngestMessage,
-  IS3Service,
   S3Service,
   logger,
   wrapped,
 } from '@whiskeyhub-document-service/core';
 import { Bucket } from 'sst/node/bucket';
 
-const s3: IS3Service = new S3Service();
+const s3 = new S3Service();
 
 const ingestTopicSubscriber: SNSHandler = async event => {
   for (const record of event.Records) {

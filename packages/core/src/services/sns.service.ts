@@ -3,9 +3,6 @@ import { PublishBatchCommand, SNSClient } from '@aws-sdk/client-sns';
 import { chunk } from 'lodash';
 import { logger } from '../utils/logger';
 import { tracer } from '../utils/tracer';
-export interface ISNSService {
-  batchEvents: (events: { id: string; payload: any }[], TopicArn: string) => Promise<void>;
-}
 
 export class SNSService {
   private snsClient: SNSClient;

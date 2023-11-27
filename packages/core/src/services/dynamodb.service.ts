@@ -25,18 +25,7 @@ type RequestItemsType =
     >
   | undefined;
 
-export interface IDynamoDBService {
-  addItemsToTable: (items: any[], table: string) => Promise<void>;
-  getItems: (
-    table: string,
-    afterTime: string,
-    timeKey: string,
-    partitionKey: string,
-    partitionValue: string
-  ) => Promise<any[] | undefined>;
-}
-
-export class DynamoDBService implements IDynamoDBService {
+export class DynamoDBService {
   private dynamoClient: DynamoDBClient;
   private docClient: DynamoDBDocumentClient;
   constructor() {

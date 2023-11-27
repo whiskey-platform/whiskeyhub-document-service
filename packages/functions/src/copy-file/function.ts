@@ -32,6 +32,8 @@ const copyFile: APIGatewayProxyHandlerV2 = async event => {
     await rawS3.send(deleteRequest);
   }
 
+  logger.info(`File copied successfully`);
+
   return {
     body: JSON.stringify({
       message: 'success',

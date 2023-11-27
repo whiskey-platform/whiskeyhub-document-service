@@ -1,4 +1,4 @@
-import { IS3Service, S3Service, logger, wrapped } from '@whiskeyhub-document-service/core';
+import { S3Service, logger, wrapped } from '@whiskeyhub-document-service/core';
 import { SNSHandler } from 'aws-lambda';
 import { DateTime } from 'luxon';
 import { extension } from 'mime-types';
@@ -17,7 +17,7 @@ interface ReceiptEvent {
   replay?: boolean;
 }
 
-const s3: IS3Service = new S3Service();
+const s3 = new S3Service();
 
 const receiptsEventHandler: SNSHandler = async event => {
   const deleteKeys: string[] = [];

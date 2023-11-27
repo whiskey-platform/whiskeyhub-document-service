@@ -1,25 +1,21 @@
-import { ISNSService, SNSService, logger, wrapped } from '@whiskeyhub-document-service/core';
+import { DatabaseService, SNSService, logger, wrapped } from '@whiskeyhub-document-service/core';
 import { Handler } from 'aws-lambda';
 import { DateTime } from 'luxon';
 import { contentType } from 'mime-types';
-import { MongoClient } from 'mongodb';
 import { Bucket } from 'sst/node/bucket';
 import { Config } from 'sst/node/config';
 import { Topic } from 'sst/node/topic';
 
-const sns: ISNSService = new SNSService();
-const mongo = new MongoClient(Config.DB_CONNECTION);
+const sns = new SNSService();
+const db = new DatabaseService(Config.DB_CONNECTION);
 
 const sendOldPDFReceiptsForProcessing: Handler = async event => {
-  const db = mongo.db('whiskey-db');
-  const collection = db.collection('files');
-
   logger.info('Retrieving all receipt files');
   // const receiptFiles = await s3.retrieveObjects(
   //   Bucket.DocumentBucket.bucketName,
   //   'Finances/Receipts'
   // );
-  const receiptFiles = await collection
+  const receiptFiles = await db.collection
     .find({
       key: { $in: /^Finances\/Receipts\// },
     })
