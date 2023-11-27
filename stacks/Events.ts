@@ -4,7 +4,7 @@ import { Storage } from './StorageStack';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 
 export const Events = ({ stack, app }: StackContext) => {
-  const { bucket } = use(Storage);
+  const { bucket, DB_CONNECTION } = use(Storage);
 
   const table = new Table(stack, 'EventsTable', {
     fields: {
@@ -21,7 +21,7 @@ export const Events = ({ stack, app }: StackContext) => {
     allEvents: {
       function: {
         handler: 'packages/functions/src/events/handler.handler',
-        bind: [table],
+        bind: [table, DB_CONNECTION],
       },
     },
   });

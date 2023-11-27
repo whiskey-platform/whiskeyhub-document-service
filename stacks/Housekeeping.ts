@@ -9,7 +9,7 @@ export const Housekeeping = ({ stack }: StackContext) => {
   // Receipts
   new Function(stack, 'SendOldPDFReceiptsForProcessing', {
     handler: 'packages/functions/src/housekeeping/send-old-pdf-receipts-for-processing.handler',
-    bind: [bucket, receiptsIngestTopic],
+    bind: [bucket, receiptsIngestTopic, DB_CONNECTION],
   });
   new Function(stack, 'DeleteOldPDFReceipts', {
     handler: 'packages/functions/src/housekeeping/delete-old-pdf-receipts.handler',
