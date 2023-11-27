@@ -11,7 +11,7 @@ const sns: ISNSService = new SNSService();
 const mongo = new MongoClient(Config.DB_CONNECTION);
 
 const sendOldPDFReceiptsForProcessing: Handler = async event => {
-  const db = mongo.db();
+  const db = mongo.db('whiskey-db');
   const collection = db.collection('files');
 
   logger.info('Retrieving all receipt files');

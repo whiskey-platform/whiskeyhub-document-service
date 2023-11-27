@@ -10,7 +10,7 @@ const getFileMetadata: APIGatewayProxyHandlerV2 = async event => {
   const key = event.pathParameters!.key!;
 
   try {
-    const db = mongo.db();
+    const db = mongo.db('whiskey-db');
     const collection = db.collection('files');
 
     const document = await collection.findOne({ key });

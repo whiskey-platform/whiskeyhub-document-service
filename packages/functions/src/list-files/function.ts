@@ -13,7 +13,7 @@ tracer.captureAWSv3Client(rawS3);
 const mongo = new MongoClient(Config.DB_CONNECTION);
 
 const listFiles: APIGatewayProxyHandlerV2 = async event => {
-  const db = mongo.db();
+  const db = mongo.db('whiskey-db');
   const collection = db.collection('files');
 
   const getRequest = new ListObjectsV2Command({

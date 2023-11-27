@@ -8,6 +8,6 @@ const mongo = new MongoClient(Config.DB_CONNECTION);
 
 export const handler: Handler = async (event, context) => {
   // save them to MongoDB
-  const db = mongo.db();
+  const db = mongo.db('whiskey-db');
   db.dropCollection('files');
 };

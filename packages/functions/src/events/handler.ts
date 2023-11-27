@@ -14,7 +14,7 @@ const dynamo: IDynamoDBService = new DynamoDBService();
 const mongo = new MongoClient(Config.DB_CONNECTION);
 
 const s3EventHandler: S3Handler = async event => {
-  const db = mongo.db();
+  const db = mongo.db('whiskey-db');
   const collection = db.collection('files');
 
   for (const record of event.Records) {
