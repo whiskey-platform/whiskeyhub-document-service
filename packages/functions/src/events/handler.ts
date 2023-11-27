@@ -31,6 +31,7 @@ const s3EventHandler: S3Handler = async event => {
         {
           $set: {
             key: record.s3.object.key,
+            filename: record.s3.object.key?.split('/').findLast(v => v) ?? record.s3.object.key,
             size: record.s3.object.size,
             contentType: contentType(record.s3.object.key),
             lastModified: record.eventTime,

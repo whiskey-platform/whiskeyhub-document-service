@@ -28,6 +28,7 @@ export const handler: Handler = async (event, context) => {
     if (mimetype === false) mimetype = 'application/octet-stream';
     return {
       key: object.Key ?? '',
+      filename: object.Key?.split('/').findLast(v => v) ?? '',
       contentType: mimetype,
       size: object.Size!,
       created: object.LastModified!,
