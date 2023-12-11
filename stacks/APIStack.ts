@@ -17,7 +17,7 @@ export function API({ stack, app }: StackContext) {
   let customDomain: ApiDomainProps | undefined;
   if (!app.local && app.stage !== 'local') {
     customDomain = {
-      path: 'documents/events',
+      path: 'documents',
       cdk: {
         domainName: DomainName.fromDomainNameAttributes(stack, 'ApiDomain', {
           name: StringParameter.valueFromLookup(
