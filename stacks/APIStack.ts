@@ -1,6 +1,7 @@
-import { Api, Config, Function, StackContext, use } from 'sst/constructs';
+import { Api, ApiDomainProps, Config, Function, StackContext, use } from 'sst/constructs';
 import { Storage } from './StorageStack';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
+import { DomainName } from '@aws-cdk/aws-apigatewayv2-alpha';
 
 export function API({ stack, app }: StackContext) {
   const { bucket, DB_CONNECTION } = use(Storage);
@@ -12,6 +13,29 @@ export function API({ stack, app }: StackContext) {
     handler: 'packages/functions/src/authorizer/function.handler',
     bind: [AUTH_BASE_URL],
   });
+
+  let customDomain: ApiDomainProps | undefined;
+  if (!app.local && app.stage !== 'local') {
+    customDomain = {
+      path: 'documents/events',
+      cdk: {
+        domainName: DomainName.fromDomainNameAttributes(stack, 'ApiDomain', {
+          name: StringParameter.valueFromLookup(
+            stack,
+            `/sst-outputs/${app.stage}-api-infra-Infra/domainName`
+          ),
+          regionalDomainName: StringParameter.valueFromLookup(
+            stack,
+            `/sst-outputs/${app.stage}-api-infra-Infra/regionalDomainName`
+          ),
+          regionalHostedZoneId: StringParameter.valueFromLookup(
+            stack,
+            `/sst-outputs/${app.stage}-api-infra-Infra/regionalHostedZoneId`
+          ),
+        }),
+      },
+    };
+  }
 
   new Api(stack, 'DocumentsAPI', {
     authorizers: {
@@ -34,5 +58,6 @@ export function API({ stack, app }: StackContext) {
         bind: [DB_CONNECTION, bucket],
       },
     },
+    customDomain,
   });
 }
