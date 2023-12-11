@@ -17,11 +17,6 @@ export function API({ stack, app }: StackContext) {
     authorizers: {
       Authorizer: {
         type: 'lambda',
-        identitySource: [
-          '$request.header.Authorization',
-          '$request.header.x-whiskey-client-id',
-          '$request.header.x-whiskey-client-secret',
-        ],
         function: authorizerFunction,
       },
     },
