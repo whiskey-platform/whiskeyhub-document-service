@@ -11,7 +11,7 @@
     "@types/luxon": "^3.3.5",
     "@types/mime-types": "^2.1.4",
     "@types/node": "^18.18.13",
-    "sst": "2.36.5"
+    "sst": "2.40.1"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.456.0",
@@ -22,7 +22,7 @@
     "luxon": "^3.4.4",
     "mime-types": "^2.1.35",
     "mongodb": "^6.3.0",
-    "sst": "2.36.5",
+    "sst": "2.40.1",
     "winston": "^3.11.0"
   }
 }
