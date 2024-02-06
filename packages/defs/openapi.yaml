@@ -1,0 +1,213 @@
+openapi: 3.0.0
+info:
+  title: WhiskeyDocs API
+  version: 1.0.0
+paths:
+  /:
+    get:
+      summary: Get list of file objects
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  files:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/File'
+                      totalCount:
+                        type: integer
+                  folders:
+                    type: array
+                    items:
+                      type: string
+                  nextPage:
+                    type: string
+  /{key}/metadata: # Generated API path for GET /{key}/metadata
+    get:
+      summary: Get metadata for a specific file
+      parameters:
+        - name: key
+          in: path
+          description: File key
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+  /{key}: # Generated API path for GET /{key}
+    get:
+      summary: Get a specific file's body (temporary S3 URL)
+      parameters:
+        - name: key
+          in: path
+          description: File key
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+    put:
+      summary: Upload a new file (returns a temporary S3 URL to PUT to)
+      parameters:
+        - name: key
+          in: path
+          description: File key
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+    delete:
+      summary: Delete a specific file
+      parameters:
+        - name: key
+          in: path
+          description: File key
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /events:
+    get:
+      summary: Get list of events
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+                  totalCount:
+                    type: integer
+                  nextPage:
+                    type: string
+components:
+  schemas:
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+        key:
+          type: string
+        filename:
+          type: string
+        contentType:
+          type: string
+        size:
+          type: integer
+        created:
+          type: string
+          format: date-time
+        lastModified:
+          type: string
+          format: date-time
+        parentKey:
+          type: string
+    Event:
+      type: object
+      properties:
+        eventName:
+          type: string
+        eventTime:
+          type: string
+          format: date-time
+        awsRegion:
+          type: string
+        eventSource:
+          type: string
+        eventVersion:
+          type: string
+        requestParameters:
+          type: object
+          properties:
+            sourceIPAddress:
+              type: string
+        responseElements:
+          type: object
+          properties:
+            x-amz-id-2:
+              type: string
+            x-amz-request-id:
+              type: string
+        s3:
+          type: object
+          properties:
+            bucket:
+              type: object
+              properties:
+                arn:
+                  type: string
+                name:
+                  type: string
+                ownerIdentity:
+                  type: object
+                  properties:
+                    principalId:
+                      type: string
+            configurationId:
+              type: string
+            object:
+              type: object
+              properties:
+                eTag:
+                  type: string
+                key:
+                  type: string
+                sequencer:
+                  type: string
+                size:
+                  type: integer
+                versionId:
+                  type: string
+            s3SchemaVersion:
+              type: string
+        userIdentity:
+          type: object
+          properties:
+            principalId:
+              type: string
