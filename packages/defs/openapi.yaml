@@ -21,14 +21,14 @@ paths:
                         type: array
                         items:
                           $ref: '#/components/schemas/File'
-                      totalCount:
-                        type: integer
+                      isTruncated:
+                        type: boolean
+                      nextPage:
+                        type: string
                   folders:
                     type: array
                     items:
                       type: string
-                  nextPage:
-                    type: string
   /{key}/metadata: # Generated API path for GET /{key}/metadata
     get:
       summary: Get metadata for a specific file
@@ -46,7 +46,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/File'
-  /{key}: # Generated API path for GET /{key}
+  /{key}:
     get:
       summary: Get a specific file's body (temporary S3 URL)
       parameters:
@@ -130,7 +130,7 @@ components:
     File:
       type: object
       properties:
-        id:
+        _id:
           type: string
         key:
           type: string

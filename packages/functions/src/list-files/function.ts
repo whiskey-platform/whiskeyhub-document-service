@@ -29,9 +29,12 @@ const listFiles: APIGatewayProxyHandlerV2 = async event => {
   const files = await filesCursor.toArray();
   return {
     body: JSON.stringify({
-      files,
+      files: {
+        items: files,
+        isTruncated: response.IsTruncated,
+        nextPage: response.NextContinuationToken,
+      },
       folders: response.CommonPrefixes?.map(p => p.Prefix!) ?? [],
-      nextPage: response.NextContinuationToken,
     }),
   };
 };
